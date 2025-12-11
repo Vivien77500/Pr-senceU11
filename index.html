@@ -29,10 +29,12 @@
  <body class="h-full">
   <div id="app" class="w-full h-full overflow-auto" style="background: #ffffff;">
    <div class="max-w-6xl mx-auto p-4 sm:p-6 md:p-8"><!-- Header -->
-    <header class="text-center mb-6">
-     <h1 id="title" class="text-3xl sm:text-4xl md:text-5xl font-bold mb-2" style="color: #0047AB;">Fiche de Présence</h1>
-     <p id="team-name" class="text-xl sm:text-2xl mb-1" style="color: #2d5f3f;">U11 AS Chelles</p>
-     <p id="training-days" class="text-sm sm:text-base mt-2" style="color: #666666;">Entraînements : Lundi et Mercredi (hors vacances scolaires)</p><!-- Date Selector -->
+    <header class="mb-6">
+     <div class="flex items-center justify-center gap-4 mb-4"><img src="logo__sae7hi.png" alt="Logo AS Chelles" class="h-20 sm:h-24 w-auto" onerror="this.style.display='none';">
+      <h1 id="title" class="text-3xl sm:text-4xl md:text-5xl font-bold" style="color: #0047AB;">Fiche de Présence</h1>
+     </div>
+     <p id="team-name" class="text-xl sm:text-2xl mb-1 text-center" style="color: #2d5f3f;">U11 AS Chelles</p>
+     <p id="training-days" class="text-sm sm:text-base mt-2 text-center" style="color: #666666;">Entraînements : Lundi et Mercredi (hors vacances scolaires)</p><!-- Date Selector -->
      <div class="mt-4 max-w-md mx-auto"><label for="date-selector" class="block mb-2 font-semibold text-base" style="color: #0047AB;">Sélectionner la date d'entraînement :</label> <select id="date-selector" class="w-full px-4 py-3 rounded-lg border-2 text-base font-semibold" style="border-color: #0047AB; background: #ffffff; color: #333333;"> <option value="">Chargement des dates...</option> </select>
      </div>
     </header><!-- View Toggle -->
@@ -119,21 +121,21 @@
     }
 
     const allPlayers = [
-      "AGGAR Axel", "AISSI Ilyes", "AIT KASSOU Aboubakar", "AMARI Kayis",
-      "ANDRITSIZEHENA Tohiniaina", "BABELANA Kiany", "BADAWY Rayan", "BANZULU Elijah",
-      "BARON TORRES Iker", "BEN YAHIA Imran", "BENNACER Nail", "BOUBRIT Manyl",
-      "BOUCHELKIA Aylan", "BOUCHELKIA Yany", "BOUREZGUI Junayd", "CHEREL Valentin",
-      "DAIGUEPERCE Theo", "DAMBRUN William", "DELEGOVE VALLY Lenyh", "ESNARD LE FOLL Aaron",
-      "ESTEVES Rafael", "EXUMAT Lenny", "FADIKA Iancine Assane", "FARIA Liam",
-      "GENDARME AFONSO Tiago", "GRAA Haydar", "HENRIET Ethan", "KAE Gabriel",
-      "KANKU Isaac Noah", "KHITER Ahmed", "KSIA Noham", "LALAOUI Adil",
-      "LEMIERE Laicky", "MAGNAN Rahyan", "MARVILLE Lenny", "MAYAKA KIBONDO MILONGO",
-      "MAYASS Ryad", "MEHDI Nail", "MEHDI Yanis", "MENDES FURTADO Charle",
-      "MESSAOUDI Jules", "MHAMDI Soulayman", "MISSENGUI Caren-Ely Hosiya", "MOUBARAKI Yassine",
-      "MOUGHFIRE Emran", "NTONE COUE Thais", "ONDJANGUIS Hermerick", "PIERRE Erwann",
-      "RAKHAOUI Mohamed", "REDISSI Adam", "RIEUF Baptiste", "SIDHOUMI Mathis",
-      "SIVARASA Habishan", "SIVARASA Kishan", "TOMAS ESPEJO LEFRANC Ethan", "TOUATI Yacine",
-      "WOLOKO LIPETA Bradley", "YOU KHOU Raphaël"
+      "Axel AGGAR", "Ilyes AISSI", "Aboubakar AIT KASSOU", "Kayis AMARI",
+      "Tohiniaina ANDRITSIZEHENA", "Kiany BABELANA", "Rayan BADAWY", "Elijah BANZULU",
+      "Iker BARON TORRES", "Imran BEN YAHIA", "Nail BENNACER", "Manyl BOUBRIT",
+      "Aylan BOUCHELKIA", "Yany BOUCHELKIA", "Junayd BOUREZGUI", "Valentin CHEREL",
+      "Theo DAIGUEPERCE", "William DAMBRUN", "Lenyh DELEGOVE VALLY", "Aaron ESNARD LE FOLL",
+      "Rafael ESTEVES", "Lenny EXUMAT", "Iancine Assane FADIKA", "Liam FARIA",
+      "Tiago GENDARME AFONSO", "Haydar GRAA", "Ethan HENRIET", "Gabriel KAE",
+      "Isaac Noah KANKU", "Ahmed KHITER", "Noham KSIA", "Adil LALAOUI",
+      "Laicky LEMIERE", "Rahyan MAGNAN", "Lenny MARVILLE", "MILONGO MAYAKA KIBONDO",
+      "Ryad MAYASS", "Nail MEHDI", "Yanis MEHDI", "Charle MENDES FURTADO",
+      "Jules MESSAOUDI", "Soulayman MHAMDI", "Caren-Ely Hosiya MISSENGUI", "Yassine MOUBARAKI",
+      "Emran MOUGHFIRE", "Thais NTONE COUE", "Hermerick ONDJANGUIS", "Erwann PIERRE",
+      "Mohamed RAKHAOUI", "Adam REDISSI", "Baptiste RIEUF", "Mathis SIDHOUMI",
+      "Habishan SIVARASA", "Kishan SIVARASA", "Ethan TOMAS ESPEJO LEFRANC", "Yacine TOUATI",
+      "Bradley WOLOKO LIPETA", "Raphaël YOU KHOU"
     ];
 
     let playerStatuses = {};
@@ -835,5 +837,5 @@
 
     initializeApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac689daf323698e',t:'MTc2NTQ3MjQyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac6a13f42051661',t:'MTc2NTQ3MzM4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
