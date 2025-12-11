@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="fr" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fiche de Présence U11 AS Chelles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    .player-card {
+      transition: all 0.2s ease;
+    }
+    .player-card:hover {
+      transform: translateY(-2px);
+    }
+    .tab-button {
+      transition: all 0.2s ease;
+    }
+    .tab-button:hover {
+      transform: translateY(-1px);
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app" class="w-full h-full overflow-auto" style="background: #ffffff;">
+   <div class="max-w-6xl mx-auto p-4 sm:p-6 md:p-8"><!-- Header -->
+    <header class="text-center mb-6">
+     <h1 id="title" class="text-3xl sm:text-4xl md:text-5xl font-bold mb-2" style="color: #0047AB;">Fiche de Présence</h1>
+     <p id="team-name" class="text-xl sm:text-2xl mb-1" style="color: #2d5f3f;">U11 AS Chelles</p>
+     <p id="current-date" class="text-base sm:text-lg font-semibold" style="color: #0047AB;"></p>
+     <p id="training-days" class="text-sm sm:text-base mt-2" style="color: #666666;">Entraînements : Lundi et Mercredi (hors vacances scolaires)</p>
+    </header><!-- View Toggle -->
+    <div class="mb-6 flex gap-2"><button id="attendance-tab" class="tab-button flex-1 py-3 rounded-lg font-bold text-base transition-all" style="background: #0047AB; color: #ffffff;"> 📝 Feuille de présence </button> <button id="history-tab" class="tab-button flex-1 py-3 rounded-lg font-bold text-base transition-all" style="background: #e0e0e0; color: #333333;"> 📊 Historique </button>
+    </div><!-- Attendance View -->
+    <div id="attendance-view"><!-- Success Message -->
+     <div id="success-message" class="hidden mb-4 p-4 rounded-lg text-center" style="background: #4caf50; color: #ffffff;">
+      <p class="font-semibold">✓ Fiche validée et enregistrée avec succès !</p>
+     </div><!-- Already Validated Message -->
+     <div id="already-validated-message" class="hidden mb-4 p-4 rounded-lg text-center" style="background: #2196F3; color: #ffffff;">
+      <p class="font-semibold">ℹ️ La fiche pour aujourd'hui a déjà été validée</p>
+     </div><!-- Instructions -->
+     <div class="rounded-lg p-4 mb-4 text-center" style="background: #0047AB;">
+      <p id="instruction-text" class="text-sm sm:text-base" style="color: #ffffff;">Cochez les présences puis cliquez sur "Valider la séance" pour enregistrer</p>
+     </div><!-- Summary Bar -->
+     <div id="summary" class="mb-6 grid grid-cols-3 gap-3 sm:gap-4">
+      <div class="rounded-lg p-3 sm:p-4 text-center" style="background: #e8f5e9;">
+       <div class="text-2xl sm:text-3xl font-bold" style="color: #2e7d32;" id="present-count">
+        0
+       </div>
+       <div class="text-xs sm:text-sm" style="color: #1a472a;">
+        Présents
+       </div>
+      </div>
+      <div class="rounded-lg p-3 sm:p-4 text-center" style="background: #ffebee;">
+       <div class="text-2xl sm:text-3xl font-bold" style="color: #c62828;" id="absent-count">
+        0
+       </div>
+       <div class="text-xs sm:text-sm" style="color: #b71c1c;">
+        Absents
+       </div>
+      </div>
+      <div class="rounded-lg p-3 sm:p-4 text-center" style="background: #fff3e0;">
+       <div class="text-2xl sm:text-3xl font-bold" style="color: #e65100;" id="total-count">
+        58
+       </div>
+       <div class="text-xs sm:text-sm" style="color: #bf360c;">
+        Total
+       </div>
+      </div>
+     </div><!-- Search Bar -->
+     <div class="mb-4"><input type="text" id="search-input" placeholder="Rechercher un joueur..." class="w-full px-4 py-3 rounded-lg border-2 text-base sm:text-lg" style="border-color: #0047AB; background: #ffffff; color: #333333;">
+     </div><!-- Players Grid -->
+     <div id="players-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
+      <p style="color: #666; text-align: center;">Chargement des joueurs...</p>
+     </div><!-- Validate Button -->
+     <div class="sticky bottom-0 pt-4 pb-2" style="background: linear-gradient(to top, #ffffff 80%, transparent);"><button id="validate-btn" class="w-full py-4 rounded-lg font-bold text-lg sm:text-xl transition-all shadow-lg mb-3" style="background: #0047AB; color: #ffffff;"> Valider la séance </button> <button id="unlock-btn" class="hidden w-full py-3 rounded-lg font-semibold text-base transition-all" style="background: #ff9800; color: #ffffff;"> 🔓 Déverrouiller pour correction </button>
+     </div>
+    </div><!-- History View -->
+    <div id="history-view" class="hidden">
+     <div class="mb-4"><label for="session-filter" class="block mb-2 font-semibold" style="color: #333333;">Filtrer par date :</label> <select id="session-filter" class="w-full px-4 py-3 rounded-lg border-2 text-base" style="border-color: #0047AB; background: #ffffff; color: #333333;"> <option value="all">Toutes les séances</option> </select>
+     </div>
+     <div id="history-stats" class="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3"><!-- Stats will be added here -->
+     </div>
+     <div id="history-content" class="space-y-4"><!-- History will be added here -->
+     </div>
+    </div>
+   </div>
+  </div><!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUhREWauwpiuVyLjip--AlCHxN4O2kiC8",
+      authDomain: "presence-u11.firebaseapp.com",
+      projectId: "presence-u11",
+      storageBucket: "presence-u11.firebasestorage.app",
+      messagingSenderId: "160361159530",
+      appId: "1:160361159530:web:f0fda13b66576389e76313"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const allPlayers = [
+      "AGGAR Axel", "AISSI Ilyes", "AIT KASSOU Aboubakar", "AMARI Kayis",
+      "ANDRITSIZEHENA Tohiniaina", "BABELANA Kiany", "BADAWY Rayan", "BANZULU Elijah",
+      "BARON TORRES Iker", "BEN YAHIA Imran", "BENNACER Nail", "BOUBRIT Manyl",
+      "BOUCHELKIA Aylan", "BOUCHELKIA Yany", "BOUREZGUI Junayd", "CHEREL Valentin",
+      "DAIGUEPERCE Theo", "DAMBRUN William", "DELEGOVE VALLY Lenyh", "ESNARD LE FOLL Aaron",
+      "ESTEVES Rafael", "EXUMAT Lenny", "FADIKA Iancine Assane", "FARIA Liam",
+      "GENDARME AFONSO Tiago", "GRAA Haydar", "HENRIET Ethan", "KAE Gabriel",
+      "KANKU Isaac Noah", "KHITER Ahmed", "KSIA Noham", "LALAOUI Adil",
+      "LEMIERE Laicky", "MAGNAN Rahyan", "MARVILLE Lenny", "MAYAKA KIBONDO MILONGO",
+      "MAYASS Ryad", "MEHDI Nail", "MEHDI Yanis", "MENDES FURTADO Charle",
+      "MESSAOUDI Jules", "MHAMDI Soulayman", "MISSENGUI Caren-Ely Hosiya", "MOUBARAKI Yassine",
+      "MOUGHFIRE Emran", "NTONE COUE Thais", "ONDJANGUIS Hermerick", "PIERRE Erwann",
+      "RAKHAOUI Mohamed", "REDISSI Adam", "RIEUF Baptiste", "SIDHOUMI Mathis",
+      "SIVARASA Habishan", "SIVARASA Kishan", "TOMAS ESPEJO LEFRANC Ethan", "TOUATI Yacine",
+      "WOLOKO LIPETA Bradley", "YOU KHOU Raphaël"
+    ];
+
+    let playerStatuses = {};
+    let allRecords = [];
+    let sessionId = `session_${Date.now()}`;
+    let currentDate = new Date().toISOString().split('T')[0];
+    let currentDayOfWeek = '';
+    let isAlreadyValidated = false;
+    let currentView = 'attendance';
+
+    // Initialize all players as pending
+    allPlayers.forEach(player => {
+      playerStatuses[player] = 'pending';
+    });
+
+    function getCurrentTrainingDay() {
+      const now = new Date();
+      const dayNum = now.getDay();
+      
+      if (dayNum === 1) {
+        return 'Lundi';
+      } else if (dayNum === 3) {
+        return 'Mercredi';
+      } else {
+        return dayNum < 1 ? 'Lundi' : (dayNum < 3 ? 'Mercredi' : 'Lundi');
+      }
+    }
+
+    async function loadAllRecords() {
+      const q = query(collection(db, 'attendance'), orderBy('validated_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      allRecords = [];
+      querySnapshot.forEach((docSnap) => {
+        allRecords.push({
+          id: docSnap.id,
+          ...docSnap.data()
+        });
+      });
+      checkIfTodayValidated();
+      if (currentView === 'history') {
+        renderHistory();
+      }
+    }
+
+    // Real-time listener
+    function setupRealtimeListener() {
+      const q = query(collection(db, 'attendance'), orderBy('validated_at', 'desc'));
+      onSnapshot(q, (snapshot) => {
+        allRecords = [];
+        snapshot.forEach((docSnap) => {
+          allRecords.push({
+            id: docSnap.id,
+            ...docSnap.data()
+          });
+        });
+        checkIfTodayValidated();
+        if (currentView === 'history') {
+          renderHistory();
+        }
+      });
+    }
+
+    function checkIfTodayValidated() {
+      const todayRecords = allRecords.filter(r => 
+        r.session_date === currentDate && r.day_of_week === currentDayOfWeek
+      );
+      
+      isAlreadyValidated = todayRecords.length > 0;
+      
+      const alreadyValidatedMsg = document.getElementById('already-validated-message');
+      const validateBtn = document.getElementById('validate-btn');
+      const unlockBtn = document.getElementById('unlock-btn');
+      
+      if (isAlreadyValidated) {
+        alreadyValidatedMsg.classList.remove('hidden');
+        validateBtn.disabled = true;
+        validateBtn.style.opacity = '0.5';
+        validateBtn.textContent = '✓ Séance déjà validée';
+        unlockBtn.classList.remove('hidden');
+        
+        todayRecords.forEach(record => {
+          playerStatuses[record.player_name] = record.status;
+        });
+        renderPlayers();
+      } else {
+        alreadyValidatedMsg.classList.add('hidden');
+        validateBtn.disabled = false;
+        validateBtn.style.opacity = '1';
+        validateBtn.textContent = 'Valider la séance';
+        unlockBtn.classList.add('hidden');
+      }
+    }
+
+    async function initializeApp() {
+      try {
+        console.log('Initialisation de l\'application...');
+        console.log('Nombre de joueurs:', allPlayers.length);
+        
+        currentDayOfWeek = getCurrentTrainingDay();
+        
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = new Date().toLocaleDateString('fr-FR', dateOptions);
+        document.getElementById('current-date').textContent = `${formattedDate} - Entraînement du ${currentDayOfWeek}`;
+
+        console.log('Chargement des records...');
+        await loadAllRecords();
+        setupRealtimeListener();
+        
+        console.log('Affichage des joueurs...');
+        renderPlayers();
+        setupSearchFilter();
+        setupTabs();
+        
+        console.log('Application initialisée avec succès');
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation:', error);
+        const container = document.getElementById('players-container');
+        container.innerHTML = '<p style="color: #f44336; text-align: center; padding: 20px;">❌ Erreur de chargement. Vérifiez la console (F12).</p>';
+      }
+    }
+
+    function setupTabs() {
+      const attendanceTab = document.getElementById('attendance-tab');
+      const historyTab = document.getElementById('history-tab');
+      const attendanceView = document.getElementById('attendance-view');
+      const historyView = document.getElementById('history-view');
+
+      attendanceTab.addEventListener('click', () => {
+        currentView = 'attendance';
+        attendanceTab.style.background = '#0047AB';
+        attendanceTab.style.color = '#ffffff';
+        historyTab.style.background = '#e0e0e0';
+        historyTab.style.color = '#333333';
+        attendanceView.classList.remove('hidden');
+        historyView.classList.add('hidden');
+      });
+
+      historyTab.addEventListener('click', () => {
+        currentView = 'history';
+        historyTab.style.background = '#0047AB';
+        historyTab.style.color = '#ffffff';
+        attendanceTab.style.background = '#e0e0e0';
+        attendanceTab.style.color = '#333333';
+        attendanceView.classList.add('hidden');
+        historyView.classList.remove('hidden');
+        renderHistory();
+      });
+    }
+
+    function togglePlayerStatus(playerName) {
+      if (isAlreadyValidated) return;
+      
+      if (playerStatuses[playerName] === 'pending') {
+        playerStatuses[playerName] = 'present';
+      } else if (playerStatuses[playerName] === 'present') {
+        playerStatuses[playerName] = 'absent';
+      } else {
+        playerStatuses[playerName] = 'pending';
+      }
+      renderPlayers();
+      updateSummary();
+    }
+
+    function renderPlayers(filter = '') {
+      console.log('renderPlayers appelé avec filter:', filter);
+      const container = document.getElementById('players-container');
+      
+      if (!container) {
+        console.error('Container players-container introuvable!');
+        return;
+      }
+      
+      container.innerHTML = '';
+
+      const filteredPlayers = allPlayers.filter(player => 
+        player.toLowerCase().includes(filter.toLowerCase())
+      );
+      
+      console.log('Joueurs filtrés:', filteredPlayers.length);
+
+      filteredPlayers.forEach(player => {
+        const status = playerStatuses[player];
+        const card = document.createElement('div');
+        card.className = 'player-card p-3 sm:p-4 rounded-lg border-2 cursor-pointer';
+        
+        let bgColor, borderColor, iconColor, icon;
+        if (status === 'present') {
+          bgColor = '#e8f5e9';
+          borderColor = '#4caf50';
+          iconColor = '#2e7d32';
+          icon = '✓';
+        } else if (status === 'absent') {
+          bgColor = '#ffebee';
+          borderColor = '#f44336';
+          iconColor = '#c62828';
+          icon = '✗';
+        } else {
+          bgColor = '#f5f5f5';
+          borderColor = '#e0e0e0';
+          iconColor = '#757575';
+          icon = '?';
+        }
+
+        card.style.background = bgColor;
+        card.style.borderColor = borderColor;
+        card.onclick = () => togglePlayerStatus(player);
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-sm sm:text-base" style="color: #333333;">${player}</span>
+            <span class="text-2xl font-bold" style="color: ${iconColor};">${icon}</span>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const presentCount = Object.values(playerStatuses).filter(s => s === 'present').length;
+      const absentCount = Object.values(playerStatuses).filter(s => s === 'absent').length;
+
+      document.getElementById('present-count').textContent = presentCount;
+      document.getElementById('absent-count').textContent = absentCount;
+    }
+
+    function setupSearchFilter() {
+      const searchInput = document.getElementById('search-input');
+      searchInput.addEventListener('input', (e) => {
+        renderPlayers(e.target.value);
+      });
+    }
+
+    async function validateSession() {
+      if (isAlreadyValidated) return;
+      
+      const pendingPlayers = Object.entries(playerStatuses)
+        .filter(([_, status]) => status === 'pending')
+        .map(([name, _]) => name);
+      
+      if (pendingPlayers.length > 0) {
+        const successMsg = document.getElementById('success-message');
+        successMsg.style.background = '#ff9800';
+        successMsg.innerHTML = `
+          <p class="font-semibold">⚠️ Attention : ${pendingPlayers.length} joueur(s) non renseigné(s)</p>
+          <p class="text-sm mt-1">Veuillez marquer tous les joueurs comme présents ou absents avant de valider</p>
+        `;
+        successMsg.classList.remove('hidden');
+        
+        setTimeout(() => successMsg.classList.add('hidden'), 5000);
+        return;
+      }
+      
+      const btn = document.getElementById('validate-btn');
+      const successMsg = document.getElementById('success-message');
+      
+      btn.disabled = true;
+      btn.textContent = 'Enregistrement en cours...';
+      btn.style.opacity = '0.7';
+
+      const validatedAt = new Date().toISOString();
+
+      try {
+        for (const [playerName, status] of Object.entries(playerStatuses)) {
+          await addDoc(collection(db, 'attendance'), {
+            session_id: sessionId,
+            session_date: currentDate,
+            day_of_week: currentDayOfWeek,
+            player_name: playerName,
+            status: status,
+            notes: "",
+            validated_at: validatedAt
+          });
+        }
+
+        successMsg.style.background = '#4caf50';
+        successMsg.innerHTML = '<p class="font-semibold">✓ Fiche validée et enregistrée avec succès !</p>';
+        successMsg.classList.remove('hidden');
+        
+        btn.disabled = true;
+        btn.textContent = '✓ Séance validée';
+        btn.style.background = '#4caf50';
+        btn.style.opacity = '1';
+
+        setTimeout(() => {
+          successMsg.classList.add('hidden');
+          btn.style.background = '#0047AB';
+          isAlreadyValidated = true;
+        }, 3000);
+      } catch (error) {
+        successMsg.style.background = '#f44336';
+        successMsg.innerHTML = '<p class="font-semibold">❌ Erreur lors de l\'enregistrement</p>';
+        successMsg.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Valider la séance';
+        btn.style.opacity = '1';
+      }
+    }
+
+    function renderHistory() {
+      const historyContent = document.getElementById('history-content');
+      const sessionFilter = document.getElementById('session-filter');
+      const historyStats = document.getElementById('history-stats');
+      
+      const sessions = {};
+      allRecords.forEach(record => {
+        const key = `${record.session_date}_${record.day_of_week}`;
+        if (!sessions[key]) {
+          sessions[key] = {
+            date: record.session_date,
+            day: record.day_of_week,
+            records: []
+          };
+        }
+        sessions[key].records.push(record);
+      });
+
+      sessionFilter.innerHTML = '<option value="all">Toutes les séances</option>';
+      Object.keys(sessions).sort().reverse().forEach(key => {
+        const session = sessions[key];
+        const date = new Date(session.date);
+        const formattedDate = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `${formattedDate} - ${session.day}`;
+        sessionFilter.appendChild(option);
+      });
+
+      const playerStats = {};
+      allPlayers.forEach(player => {
+        playerStats[player] = { present: 0, absent: 0, total: 0 };
+      });
+
+      const selectedSession = sessionFilter.value;
+      const recordsToShow = selectedSession === 'all' 
+        ? allRecords 
+        : sessions[selectedSession]?.records || [];
+
+      recordsToShow.forEach(record => {
+        if (playerStats[record.player_name]) {
+          playerStats[record.player_name].total++;
+          if (record.status === 'present') {
+            playerStats[record.player_name].present++;
+          } else if (record.status === 'absent') {
+            playerStats[record.player_name].absent++;
+          }
+        }
+      });
+
+      const totalSessions = selectedSession === 'all' ? Object.keys(sessions).length : 1;
+      const totalPresent = Object.values(playerStats).reduce((sum, p) => sum + p.present, 0);
+      const totalAbsent = Object.values(playerStats).reduce((sum, p) => sum + p.absent, 0);
+      const avgPresent = totalSessions > 0 ? Math.round(totalPresent / totalSessions) : 0;
+
+      historyStats.innerHTML = `
+        <div class="rounded-lg p-3 text-center" style="background: #e3f2fd;">
+          <div class="text-xl font-bold" style="color: #1976d2;">${totalSessions}</div>
+          <div class="text-xs" style="color: #0d47a1;">Séances</div>
+        </div>
+        <div class="rounded-lg p-3 text-center" style="background: #e8f5e9;">
+          <div class="text-xl font-bold" style="color: #2e7d32;">${totalPresent}</div>
+          <div class="text-xs" style="color: #1a472a;">Présences</div>
+        </div>
+        <div class="rounded-lg p-3 text-center" style="background: #ffebee;">
+          <div class="text-xl font-bold" style="color: #c62828;">${totalAbsent}</div>
+          <div class="text-xs" style="color: #b71c1c;">Absences</div>
+        </div>
+        <div class="rounded-lg p-3 text-center" style="background: #fff3e0;">
+          <div class="text-xl font-bold" style="color: #e65100;">${avgPresent}</div>
+          <div class="text-xs" style="color: #bf360c;">Moy/Séance</div>
+        </div>
+      `;
+
+      historyContent.innerHTML = '';
+      
+      if (selectedSession !== 'all' && sessions[selectedSession]) {
+        const sessionRecords = sessions[selectedSession].records;
+        const presentPlayers = [];
+        const absentPlayers = [];
+        const pendingPlayers = [];
+        
+        allPlayers.forEach(player => {
+          const record = sessionRecords.find(r => r.player_name === player);
+          if (record) {
+            if (record.status === 'present') {
+              presentPlayers.push(player);
+            } else if (record.status === 'absent') {
+              absentPlayers.push(player);
+            } else {
+              pendingPlayers.push(player);
+            }
+          } else {
+            pendingPlayers.push(player);
+          }
+        });
+        
+        if (presentPlayers.length > 0) {
+          const presentSection = document.createElement('div');
+          presentSection.className = 'mb-4';
+          presentSection.innerHTML = `
+            <h3 class="text-lg font-bold mb-3" style="color: #2e7d32;">✓ Présents (${presentPlayers.length})</h3>
+          `;
+          
+          const presentGrid = document.createElement('div');
+          presentGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2';
+          
+          presentPlayers.forEach(player => {
+            const card = document.createElement('div');
+            card.className = 'rounded-lg p-3 border-2';
+            card.style.background = '#e8f5e9';
+            card.style.borderColor = '#4caf50';
+            card.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-sm" style="color: #333333;">${player}</span>
+                <span class="text-xl font-bold" style="color: #2e7d32;">✓</span>
+              </div>
+            `;
+            presentGrid.appendChild(card);
+          });
+          
+          presentSection.appendChild(presentGrid);
+          historyContent.appendChild(presentSection);
+        }
+        
+        if (absentPlayers.length > 0) {
+          const absentSection = document.createElement('div');
+          absentSection.className = 'mb-4';
+          absentSection.innerHTML = `
+            <h3 class="text-lg font-bold mb-3" style="color: #c62828;">✗ Absents (${absentPlayers.length})</h3>
+          `;
+          
+          const absentGrid = document.createElement('div');
+          absentGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2';
+          
+          absentPlayers.forEach(player => {
+            const card = document.createElement('div');
+            card.className = 'rounded-lg p-3 border-2';
+            card.style.background = '#ffebee';
+            card.style.borderColor = '#f44336';
+            card.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-sm" style="color: #333333;">${player}</span>
+                <span class="text-xl font-bold" style="color: #c62828;">✗</span>
+              </div>
+            `;
+            absentGrid.appendChild(card);
+          });
+          
+          absentSection.appendChild(absentGrid);
+          historyContent.appendChild(absentSection);
+        }
+        
+        if (pendingPlayers.length > 0) {
+          const pendingSection = document.createElement('div');
+          pendingSection.className = 'mb-4';
+          pendingSection.innerHTML = `
+            <h3 class="text-lg font-bold mb-3" style="color: #757575;">? Non renseignés (${pendingPlayers.length})</h3>
+          `;
+          
+          const pendingGrid = document.createElement('div');
+          pendingGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2';
+          
+          pendingPlayers.forEach(player => {
+            const card = document.createElement('div');
+            card.className = 'rounded-lg p-3 border-2';
+            card.style.background = '#f5f5f5';
+            card.style.borderColor = '#e0e0e0';
+            card.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-sm" style="color: #333333;">${player}</span>
+                <span class="text-xl font-bold" style="color: #757575;">?</span>
+              </div>
+            `;
+            pendingGrid.appendChild(card);
+          });
+          
+          pendingSection.appendChild(pendingGrid);
+          historyContent.appendChild(pendingSection);
+        }
+      } else {
+        const sortedPlayers = Object.entries(playerStats)
+          .filter(([_, stats]) => stats.total > 0)
+          .sort((a, b) => b[1].present - a[1].present);
+
+        sortedPlayers.forEach(([player, stats]) => {
+          const presenceRate = stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0;
+          
+          const playerCard = document.createElement('div');
+          playerCard.className = 'rounded-lg p-4 border-2';
+          playerCard.style.background = '#f9f9f9';
+          playerCard.style.borderColor = '#e0e0e0';
+          
+          playerCard.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-semibold" style="color: #333333;">${player}</span>
+              <span class="text-sm font-bold" style="color: #0047AB;">${presenceRate}%</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center text-sm">
+              <div>
+                <div class="font-bold" style="color: #2e7d32;">${stats.present}</div>
+                <div class="text-xs" style="color: #666;">Présent</div>
+              </div>
+              <div>
+                <div class="font-bold" style="color: #c62828;">${stats.absent}</div>
+                <div class="text-xs" style="color: #666;">Absent</div>
+              </div>
+              <div>
+                <div class="font-bold" style="color: #666;">${stats.total}</div>
+                <div class="text-xs" style="color: #666;">Total</div>
+              </div>
+            </div>
+          `;
+          
+          historyContent.appendChild(playerCard);
+        });
+
+        if (sortedPlayers.length === 0) {
+          historyContent.innerHTML = '<p class="text-center py-8" style="color: #666;">Aucune donnée disponible</p>';
+        }
+      }
+    }
+
+    document.getElementById('session-filter').addEventListener('change', renderHistory);
+
+    async function unlockSession() {
+      const unlockBtn = document.getElementById('unlock-btn');
+      const validateBtn = document.getElementById('validate-btn');
+      const alreadyValidatedMsg = document.getElementById('already-validated-message');
+      
+      unlockBtn.textContent = 'Suppression en cours...';
+      unlockBtn.disabled = true;
+      unlockBtn.style.opacity = '0.7';
+      
+      const todayRecords = allRecords.filter(r => 
+        r.session_date === currentDate && r.day_of_week === currentDayOfWeek
+      );
+      
+      try {
+        for (const record of todayRecords) {
+          await deleteDoc(doc(db, 'attendance', record.id));
+        }
+        
+        isAlreadyValidated = false;
+        alreadyValidatedMsg.classList.add('hidden');
+        validateBtn.disabled = false;
+        validateBtn.style.opacity = '1';
+        validateBtn.textContent = 'Valider la séance';
+        validateBtn.style.background = '#0047AB';
+        unlockBtn.classList.add('hidden');
+        unlockBtn.disabled = false;
+        unlockBtn.style.opacity = '1';
+        unlockBtn.textContent = '🔓 Déverrouiller pour correction';
+        
+        allPlayers.forEach(player => {
+          playerStatuses[player] = 'pending';
+        });
+        renderPlayers();
+      } catch (error) {
+        unlockBtn.textContent = '❌ Erreur';
+        setTimeout(() => {
+          unlockBtn.textContent = '🔓 Déverrouiller pour correction';
+          unlockBtn.disabled = false;
+          unlockBtn.style.opacity = '1';
+        }, 2000);
+      }
+    }
+
+    document.getElementById('validate-btn').addEventListener('click', validateSession);
+    document.getElementById('unlock-btn').addEventListener('click', unlockSession);
+
+    initializeApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac6797537ebee96',t:'MTc2NTQ3MTc1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
