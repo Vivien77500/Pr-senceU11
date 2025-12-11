@@ -92,20 +92,30 @@
    </div>
   </div><!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    let db = null;
+    let firestoreFunctions = null;
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBUhREWauwpiuVyLjip--AlCHxN4O2kiC8",
-      authDomain: "presence-u11.firebaseapp.com",
-      projectId: "presence-u11",
-      storageBucket: "presence-u11.firebasestorage.app",
-      messagingSenderId: "160361159530",
-      appId: "1:160361159530:web:f0fda13b66576389e76313"
-    };
+    // Try to load Firebase
+    try {
+      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+      const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      firestoreFunctions = firestoreModule;
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+      const firebaseConfig = {
+        apiKey: "AIzaSyBUhREWauwpiuVyLjip--AlCHxN4O2kiC8",
+        authDomain: "presence-u11.firebaseapp.com",
+        projectId: "presence-u11",
+        storageBucket: "presence-u11.firebasestorage.app",
+        messagingSenderId: "160361159530",
+        appId: "1:160361159530:web:f0fda13b66576389e76313"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      db = firestoreModule.getFirestore(app);
+      console.log('✓ Firebase chargé avec succès');
+    } catch (error) {
+      console.warn('Firebase non disponible, mode local activé:', error);
+    }
 
     const allPlayers = [
       "AGGAR Axel", "AISSI Ilyes", "AIT KASSOU Aboubakar", "AMARI Kayis",
@@ -152,27 +162,16 @@
     }
 
     async function loadAllRecords() {
-      const q = query(collection(db, 'attendance'), orderBy('validated_at', 'desc'));
-      const querySnapshot = await getDocs(q);
-      allRecords = [];
-      querySnapshot.forEach((docSnap) => {
-        allRecords.push({
-          id: docSnap.id,
-          ...docSnap.data()
-        });
-      });
-      checkIfTodayValidated();
-      if (currentView === 'history') {
-        renderHistory();
+      if (!db || !firestoreFunctions) {
+        console.log('Firebase non disponible, pas de records à charger');
+        return;
       }
-    }
-
-    // Real-time listener
-    function setupRealtimeListener() {
-      const q = query(collection(db, 'attendance'), orderBy('validated_at', 'desc'));
-      onSnapshot(q, (snapshot) => {
+      try {
+        const { collection, getDocs, query, orderBy } = firestoreFunctions;
+        const q = query(collection(db, 'attendance'), orderBy('validated_at', 'desc'));
+        const querySnapshot = await getDocs(q);
         allRecords = [];
-        snapshot.forEach((docSnap) => {
+        querySnapshot.forEach((docSnap) => {
           allRecords.push({
             id: docSnap.id,
             ...docSnap.data()
@@ -182,7 +181,33 @@
         if (currentView === 'history') {
           renderHistory();
         }
-      });
+      } catch (error) {
+        console.error('Erreur chargement records:', error);
+      }
+    }
+
+    // Real-time listener
+    function setupRealtimeListener() {
+      if (!db || !firestoreFunctions) return;
+      try {
+        const { collection, query, orderBy, onSnapshot } = firestoreFunctions;
+        const q = query(collection(db, 'attendance'), orderBy('validated_at', 'desc'));
+        onSnapshot(q, (snapshot) => {
+          allRecords = [];
+          snapshot.forEach((docSnap) => {
+            allRecords.push({
+              id: docSnap.id,
+              ...docSnap.data()
+            });
+          });
+          checkIfTodayValidated();
+          if (currentView === 'history') {
+            renderHistory();
+          }
+        });
+      } catch (error) {
+        console.error('Erreur listener:', error);
+      }
     }
 
     function checkIfTodayValidated() {
@@ -361,6 +386,15 @@
     async function validateSession() {
       if (isAlreadyValidated) return;
       
+      if (!db || !firestoreFunctions) {
+        const successMsg = document.getElementById('success-message');
+        successMsg.style.background = '#f44336';
+        successMsg.innerHTML = '<p class="font-semibold">❌ Firebase non disponible</p>';
+        successMsg.classList.remove('hidden');
+        setTimeout(() => successMsg.classList.add('hidden'), 3000);
+        return;
+      }
+      
       const pendingPlayers = Object.entries(playerStatuses)
         .filter(([_, status]) => status === 'pending')
         .map(([name, _]) => name);
@@ -388,6 +422,7 @@
       const validatedAt = new Date().toISOString();
 
       try {
+        const { collection, addDoc } = firestoreFunctions;
         for (const [playerName, status] of Object.entries(playerStatuses)) {
           await addDoc(collection(db, 'attendance'), {
             session_id: sessionId,
@@ -415,6 +450,7 @@
           isAlreadyValidated = true;
         }, 3000);
       } catch (error) {
+        console.error('Erreur validation:', error);
         successMsg.style.background = '#f44336';
         successMsg.innerHTML = '<p class="font-semibold">❌ Erreur lors de l\'enregistrement</p>';
         successMsg.classList.remove('hidden');
@@ -650,6 +686,8 @@
     document.getElementById('session-filter').addEventListener('change', renderHistory);
 
     async function unlockSession() {
+      if (!db || !firestoreFunctions) return;
+      
       const unlockBtn = document.getElementById('unlock-btn');
       const validateBtn = document.getElementById('validate-btn');
       const alreadyValidatedMsg = document.getElementById('already-validated-message');
@@ -663,6 +701,7 @@
       );
       
       try {
+        const { deleteDoc, doc } = firestoreFunctions;
         for (const record of todayRecords) {
           await deleteDoc(doc(db, 'attendance', record.id));
         }
@@ -683,6 +722,7 @@
         });
         renderPlayers();
       } catch (error) {
+        console.error('Erreur déverrouillage:', error);
         unlockBtn.textContent = '❌ Erreur';
         setTimeout(() => {
           unlockBtn.textContent = '🔓 Déverrouiller pour correction';
@@ -697,5 +737,5 @@
 
     initializeApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac6797537ebee96',t:'MTc2NTQ3MTc1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac681c5235fc2cf',t:'MTc2NTQ3MjA5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
