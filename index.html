@@ -32,8 +32,9 @@
     <header class="text-center mb-6">
      <h1 id="title" class="text-3xl sm:text-4xl md:text-5xl font-bold mb-2" style="color: #0047AB;">Fiche de Présence</h1>
      <p id="team-name" class="text-xl sm:text-2xl mb-1" style="color: #2d5f3f;">U11 AS Chelles</p>
-     <p id="current-date" class="text-base sm:text-lg font-semibold" style="color: #0047AB;"></p>
-     <p id="training-days" class="text-sm sm:text-base mt-2" style="color: #666666;">Entraînements : Lundi et Mercredi (hors vacances scolaires)</p>
+     <p id="training-days" class="text-sm sm:text-base mt-2" style="color: #666666;">Entraînements : Lundi et Mercredi (hors vacances scolaires)</p><!-- Date Selector -->
+     <div class="mt-4 max-w-md mx-auto"><label for="date-selector" class="block mb-2 font-semibold text-base" style="color: #0047AB;">Sélectionner la date d'entraînement :</label> <select id="date-selector" class="w-full px-4 py-3 rounded-lg border-2 text-base font-semibold" style="border-color: #0047AB; background: #ffffff; color: #333333;"> <option value="">Chargement des dates...</option> </select>
+     </div>
     </header><!-- View Toggle -->
     <div class="mb-6 flex gap-2"><button id="attendance-tab" class="tab-button flex-1 py-3 rounded-lg font-bold text-base transition-all" style="background: #0047AB; color: #ffffff;"> 📝 Feuille de présence </button> <button id="history-tab" class="tab-button flex-1 py-3 rounded-lg font-bold text-base transition-all" style="background: #e0e0e0; color: #333333;"> 📊 Historique </button>
     </div><!-- Attendance View -->
@@ -42,7 +43,7 @@
       <p class="font-semibold">✓ Fiche validée et enregistrée avec succès !</p>
      </div><!-- Already Validated Message -->
      <div id="already-validated-message" class="hidden mb-4 p-4 rounded-lg text-center" style="background: #2196F3; color: #ffffff;">
-      <p class="font-semibold">ℹ️ La fiche pour aujourd'hui a déjà été validée</p>
+      <p class="font-semibold">��️ La fiche pour aujourd'hui a déjà été validée</p>
      </div><!-- Instructions -->
      <div class="rounded-lg p-4 mb-4 text-center" style="background: #0047AB;">
       <p id="instruction-text" class="text-sm sm:text-base" style="color: #ffffff;">Cochez les présences puis cliquez sur "Valider la séance" pour enregistrer</p>
@@ -161,6 +162,103 @@
       }
     }
 
+    function generateTrainingDates() {
+      const dates = [];
+      const startDate = new Date('2024-09-01'); // Septembre 2024
+      const today = new Date();
+      const endDate = new Date(today.getFullYear(), today.getMonth() + 3, 0); // 3 mois dans le futur
+      
+      // Périodes de vacances scolaires 2024-2025 (Zone C - Créteil)
+      const holidays = [
+        { start: new Date('2024-10-19'), end: new Date('2024-11-04') }, // Toussaint
+        { start: new Date('2024-12-21'), end: new Date('2025-01-06') }, // Noël
+        { start: new Date('2025-02-15'), end: new Date('2025-03-03') }, // Hiver
+        { start: new Date('2025-04-12'), end: new Date('2025-04-28') }, // Printemps
+        { start: new Date('2025-07-05'), end: new Date('2025-09-01') }  // Été
+      ];
+      
+      function isHoliday(date) {
+        return holidays.some(period => date >= period.start && date <= period.end);
+      }
+      
+      let currentDateIter = new Date(startDate);
+      
+      while (currentDateIter <= endDate) {
+        const dayNum = currentDateIter.getDay();
+        
+        // Lundi (1) ou Mercredi (3)
+        if ((dayNum === 1 || dayNum === 3) && !isHoliday(currentDateIter)) {
+          const dateStr = currentDateIter.toISOString().split('T')[0];
+          const dayName = dayNum === 1 ? 'Lundi' : 'Mercredi';
+          const formattedDate = currentDateIter.toLocaleDateString('fr-FR', { 
+            weekday: 'long', 
+            day: '2-digit', 
+            month: 'long', 
+            year: 'numeric' 
+          });
+          
+          dates.push({
+            date: dateStr,
+            day: dayName,
+            formatted: formattedDate,
+            isPast: currentDateIter < today,
+            isToday: dateStr === today.toISOString().split('T')[0]
+          });
+        }
+        
+        currentDateIter.setDate(currentDateIter.getDate() + 1);
+      }
+      
+      return dates;
+    }
+
+    function populateDateSelector() {
+      const selector = document.getElementById('date-selector');
+      const trainingDates = generateTrainingDates();
+      
+      selector.innerHTML = '';
+      
+      // Trouver la date d'aujourd'hui ou la prochaine date d'entraînement
+      const todayIndex = trainingDates.findIndex(d => d.isToday);
+      const nextIndex = trainingDates.findIndex(d => !d.isPast);
+      const defaultIndex = todayIndex !== -1 ? todayIndex : (nextIndex !== -1 ? nextIndex : trainingDates.length - 1);
+      
+      trainingDates.forEach((dateInfo, index) => {
+        const option = document.createElement('option');
+        option.value = `${dateInfo.date}_${dateInfo.day}`;
+        
+        let label = `${dateInfo.formatted}`;
+        if (dateInfo.isToday) {
+          label += ' 🔵 AUJOURD\'HUI';
+        } else if (dateInfo.isPast) {
+          label += ' ✓';
+        }
+        
+        option.textContent = label;
+        option.selected = index === defaultIndex;
+        selector.appendChild(option);
+      });
+      
+      // Mettre à jour la date sélectionnée
+      updateSelectedDate();
+    }
+
+    function updateSelectedDate() {
+      const selector = document.getElementById('date-selector');
+      const [dateStr, dayName] = selector.value.split('_');
+      
+      currentDate = dateStr;
+      currentDayOfWeek = dayName;
+      sessionId = `session_${dateStr}_${dayName}`;
+      
+      // Réinitialiser les statuts
+      allPlayers.forEach(player => {
+        playerStatuses[player] = 'pending';
+      });
+      
+      checkIfTodayValidated();
+    }
+
     async function loadAllRecords() {
       if (!db || !firestoreFunctions) {
         console.log('Firebase non disponible, pas de records à charger');
@@ -246,11 +344,11 @@
         console.log('Initialisation de l\'application...');
         console.log('Nombre de joueurs:', allPlayers.length);
         
-        currentDayOfWeek = getCurrentTrainingDay();
+        // Populate date selector
+        populateDateSelector();
         
-        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const formattedDate = new Date().toLocaleDateString('fr-FR', dateOptions);
-        document.getElementById('current-date').textContent = `${formattedDate} - Entraînement du ${currentDayOfWeek}`;
+        // Setup date selector change event
+        document.getElementById('date-selector').addEventListener('change', updateSelectedDate);
 
         console.log('Chargement des records...');
         await loadAllRecords();
@@ -737,5 +835,5 @@
 
     initializeApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac681c5235fc2cf',t:'MTc2NTQ3MjA5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac689daf323698e',t:'MTc2NTQ3MjQyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
