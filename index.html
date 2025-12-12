@@ -121,21 +121,21 @@
     }
 
     const allPlayers = [
-      "Axel AGGAR", "Ilyes AISSI", "Aboubakar AIT KASSOU", "Kayis AMARI",
-      "Tohiniaina ANDRITSIZEHENA", "Kiany BABELANA", "Rayan BADAWY", "Elijah BANZULU",
-      "Iker BARON TORRES", "Imran BEN YAHIA", "Nail BENNACER", "Manyl BOUBRIT",
-      "Aylan BOUCHELKIA", "Yany BOUCHELKIA", "Junayd BOUREZGUI", "Valentin CHEREL",
-      "Theo DAIGUEPERCE", "William DAMBRUN", "Lenyh DELEGOVE VALLY", "Aaron ESNARD LE FOLL",
-      "Rafael ESTEVES", "Lenny EXUMAT", "Iancine Assane FADIKA", "Liam FARIA",
-      "Tiago GENDARME AFONSO", "Haydar GRAA", "Ethan HENRIET", "Gabriel KAE",
-      "Isaac Noah KANKU", "Ahmed KHITER", "Noham KSIA", "Adil LALAOUI",
-      "Laicky LEMIERE", "Rahyan MAGNAN", "Lenny MARVILLE", "MILONGO MAYAKA KIBONDO",
-      "Ryad MAYASS", "Nail MEHDI", "Yanis MEHDI", "Charle MENDES FURTADO",
-      "Jules MESSAOUDI", "Soulayman MHAMDI", "Caren-Ely Hosiya MISSENGUI", "Yassine MOUBARAKI",
-      "Emran MOUGHFIRE", "Thais NTONE COUE", "Hermerick ONDJANGUIS", "Erwann PIERRE",
-      "Mohamed RAKHAOUI", "Adam REDISSI", "Baptiste RIEUF", "Mathis SIDHOUMI",
-      "Habishan SIVARASA", "Kishan SIVARASA", "Ethan TOMAS ESPEJO LEFRANC", "Yacine TOUATI",
-      "Bradley WOLOKO LIPETA", "Raphaël YOU KHOU"
+      "Aaron ESNARD LE FOLL", "Aboubakar AIT KASSOU", "Adam REDISSI", "Adil LALAOUI",
+      "Ahmed KHITER", "Axel AGGAR", "Aylan BOUCHELKIA", "Baptiste RIEUF",
+      "Bradley WOLOKO LIPETA", "Caren-Ely Hosiya MISSENGUI", "Charle MENDES FURTADO", "Elijah BANZULU",
+      "Emran MOUGHFIRE", "Erwann PIERRE", "Ethan HENRIET", "Ethan TOMAS ESPEJO LEFRANC",
+      "Gabriel KAE", "Habishan SIVARASA", "Haydar GRAA", "Hermerick ONDJANGUIS",
+      "Iancine Assane FADIKA", "Iker BARON TORRES", "Ilyes AISSI", "Imran BEN YAHIA",
+      "Isaac Noah KANKU", "Jules MESSAOUDI", "Junayd BOUREZGUI", "Kayis AMARI",
+      "Kiany BABELANA", "Kishan SIVARASA", "Laicky LEMIERE", "Lenny EXUMAT",
+      "Lenny MARVILLE", "Lenyh DELEGOVE VALLY", "Liam FARIA", "Manyl BOUBRIT",
+      "Mathis SIDHOUMI", "MILONGO MAYAKA KIBONDO", "Mohamed RAKHAOUI", "Nail BENNACER",
+      "Nail MEHDI", "Noham KSIA", "Rafael ESTEVES", "Rahyan MAGNAN",
+      "Raphaël YOU KHOU", "Rayan BADAWY", "Ryad MAYASS", "Soulayman MHAMDI",
+      "Thais NTONE COUE", "Theo DAIGUEPERCE", "Tiago GENDARME AFONSO", "Tohiniaina ANDRITSIZEHENA",
+      "Valentin CHEREL", "William DAMBRUN", "Yacine TOUATI", "Yanis MEHDI",
+      "Yany BOUCHELKIA", "Yassine MOUBARAKI"
     ];
 
     let playerStatuses = {};
@@ -233,7 +233,7 @@
         if (dateInfo.isToday) {
           label += ' 🔵 AUJOURD\'HUI';
         } else if (dateInfo.isPast) {
-          label += ' ✓';
+          label += ' �����';
         }
         
         option.textContent = label;
@@ -253,10 +253,13 @@
       currentDayOfWeek = dayName;
       sessionId = `session_${dateStr}_${dayName}`;
       
-      // Réinitialiser les statuts
+      // Réinitialiser tous les statuts à pending
       allPlayers.forEach(player => {
         playerStatuses[player] = 'pending';
       });
+      
+      // Rafraîchir l'affichage
+      renderPlayers();
       
       checkIfTodayValidated();
     }
@@ -837,5 +840,5 @@
 
     initializeApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac6a13f42051661',t:'MTc2NTQ3MzM4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9acbf5b2104199a5',t:'MTc2NTUyOTI3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
