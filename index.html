@@ -92,6 +92,8 @@
     </div><!-- History View -->
     <div id="history-view" class="hidden">
      <div class="mb-4"><label for="session-filter" class="block mb-2 font-semibold" style="color: #333333;">Filtrer par date :</label> <select id="session-filter" class="w-full px-4 py-3 rounded-lg border-2 text-base" style="border-color: #0047AB; background: #ffffff; color: #333333;"> <option value="all">Toutes les séances</option> </select>
+     </div><!-- Search Bar for History -->
+     <div class="mb-4"><input type="text" id="history-search-input" placeholder="Rechercher un joueur..." class="w-full px-4 py-3 rounded-lg border-2 text-base sm:text-lg" style="border-color: #0047AB; background: #ffffff; color: #333333;">
      </div>
      <div id="history-stats" class="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3"><!-- Stats will be added here -->
      </div>
@@ -725,7 +727,7 @@
       }
     }
 
-    function renderHistory() {
+    function renderHistory(searchFilter = '') {
       const historyContent = document.getElementById('history-content');
       const sessionFilter = document.getElementById('session-filter');
       const historyStats = document.getElementById('history-stats');
@@ -754,8 +756,13 @@
         sessionFilter.appendChild(option);
       });
 
+      // Filter players by search term
+      const filteredPlayers = allPlayers.filter(player => 
+        player.toLowerCase().includes(searchFilter.toLowerCase())
+      );
+      
       const playerStats = {};
-      allPlayers.forEach(player => {
+      filteredPlayers.forEach(player => {
         playerStats[player] = { present: 0, absent: 0, total: 0 };
       });
 
@@ -807,7 +814,7 @@
         const absentPlayers = [];
         const pendingPlayers = [];
         
-        allPlayers.forEach(player => {
+        filteredPlayers.forEach(player => {
           const record = sessionRecords.find(r => r.player_name === player);
           if (record) {
             if (record.status === 'present') {
@@ -948,7 +955,12 @@
       }
     }
 
-    document.getElementById('session-filter').addEventListener('change', renderHistory);
+    document.getElementById('session-filter').addEventListener('change', () => renderHistory());
+    
+    // Setup history search filter
+    document.getElementById('history-search-input').addEventListener('input', (e) => {
+      renderHistory(e.target.value);
+    });
 
     async function unlockSession() {
       if (!db || !firestoreFunctions) return;
@@ -1007,5 +1019,5 @@
 
     initializeApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9acbfe1ad5f7698e',t:'MTc2NTUyOTYyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9acc058ef188698e',t:'MTc2NTUyOTkyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
